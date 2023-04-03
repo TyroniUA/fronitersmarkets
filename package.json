@@ -1,0 +1,16 @@
+{
+  "name": "price-calculator",
+  "version": "1.0.0",
+  "description": "price calculator for a cow for FrontiersMarket test task",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "fm",
+    "price",
+    "frontiersmarket"
+  ],
+  "author": "volodymyr r-t",
+  "license": "ISC"
+}
