@@ -1,46 +1,94 @@
-const CowBreeds = {
-  ANGUS: { name: 'Angus', pricePerKg: 2.5 },
-  HEREFORD: { name: 'Hereford', pricePerKg: 2.2 },
-  HOLSTEIN: { name: 'Holstein', pricePerKg: 2.0 },
-  JERSEY: { name: 'Jersey', pricePerKg: 2.7 },
-  LIMOUSIN: { name: 'Limousin', pricePerKg: 3.0 },
-  CHAROLAIS: { name: 'Charolais', pricePerKg: 2.8 },
-  SIMMENTAL: { name: 'Simmental', pricePerKg: 2.3 },
-  BRAHMAN: { name: 'Brahman', pricePerKg: 2.1 },
-  GUERNSEY: { name: 'Guernsey', pricePerKg: 2.9 },
-  BROWN_SWISS: { name: 'Brown Swiss', pricePerKg: 2.6 }
-};
 
+import * as constants from "./constants.js";
 const photoData = {
-  weight: 500, 
-  accuracy: 5,
-  breed: CowBreeds.ANGUS 
+  weight: 560,
+  accuracyError: 5,
+  breed: "ANGUS",
+  conformation: "R",
+  fat: 4
 };
 
-function calculateCowPrice(photoData) {
-  const pricePerKg = photoData.breed.pricePerKg; 
+const userInputData = {
+  monthAge: 14,
+  monthBreed: 3,
+};
+
+
+function calcPriceByKg(photoData) {
+  const { weight, accuracyError, breed } = photoData;
 
   const weightRange = {
-    min: photoData.weight - (photoData.weight * photoData.accuracy / 100),
-    max: photoData.weight + (photoData.weight * photoData.accuracy / 100)
+    min: weight - (weight * accuracyError / 100),
+    max: weight + (weight * accuracyError / 100)
   };
 
   const averageWeight = (weightRange.min + weightRange.max) / 2;
 
-  const minPrice = weightRange.min * pricePerKg;
-  const maxPrice = weightRange.max * pricePerKg;
+  const minPrice = weightRange.min * constants.COW_BREEDS[breed].pricePerKg;
+  const maxPrice = weightRange.max * constants.COW_BREEDS[breed].pricePerKg;
 
   return {
     minPrice: minPrice.toFixed(2),
     maxPrice: maxPrice.toFixed(2),
     averageWeight: averageWeight.toFixed(2),
-    breed: photoData.breed
+    breed: breed
   };
 }
 
-const cowPrice = calculateCowPrice(photoData);
-console.log(`Weight range: ${cowPrice.minPrice}kg - ${cowPrice.maxPrice}kg`);
-console.log(`Average weight: ${cowPrice.averageWeight}kg`);
-console.log(`Breed: ${cowPrice.breed.name}`);
-console.log(`Min Price: ${cowPrice.minPrice}`);
-console.log(`Max Price: ${cowPrice.maxPrice}`);
+function calcPrice(photoData, userInputData) {
+  const { weight, accuracyError, breed, conformation, fat } = photoData;
+  const { monthAge, monthBreed } = userInputData;
+
+
+  const weightRange = {
+    min: weight - (weight * accuracyError / 100),
+    max: weight + (weight * accuracyError / 100)
+  };
+
+  const bodyFactor = constants.conformFatMatrix[conformation][fat];
+  const ageFactor = calcAgeFactor(monthAge);
+  const breedFactor = calcBreedFactor(monthBreed);
+  let minPrice = (weightRange.min * constants.COW_BREEDS[breed].pricePerKg) * bodyFactor * ageFactor * breedFactor;
+  let maxPrice = (weightRange.max * constants.COW_BREEDS[breed].pricePerKg) * bodyFactor * ageFactor * breedFactor;
+
+  return {
+    minPrice: minPrice.toFixed(2),
+    maxPrice: maxPrice.toFixed(2)
+  }
+
+}
+
+const calcAgeFactor = (monthAge) => {
+  const ageDiff = monthAge - constants.MONTH_PRICE_REF;
+  const adjustFactor = ageDiff > 0 ? ageDiff * -constants.MONTH_PRICE_FACTOR : ageDiff * constants.MONTH_PRICE_FACTOR;
+
+  return (1 + adjustFactor);
+}
+
+const calcBreedFactor = (breedMonth) => {
+  let adjustFactor = 0;
+
+  if (breedMonth < 6) {
+    adjustFactor = breedMonth * constants.BREED_MONTH_DISC
+  } else if (monthBred === 6) {
+    adjustFactor = 0;
+  } else if (monthBred > 6) {
+    adjustFactor = (monthBred - 6) * constants.BREED_MONTH_PREM;
+  }
+
+  return (1 + adjustFactor);
+}
+
+const enhancedCowPriceData = calcPrice(photoData, userInputData);
+const priceByKg = calcPriceByKg(photoData);
+
+console.log(`Weight range: ${priceByKg.minPrice}kg - ${priceByKg.maxPrice}kg`);
+console.log(`Average weight: ${priceByKg.averageWeight}kg`);
+console.log(`Breed: ${priceByKg.breed}`);
+console.log(`Min Price: ${priceByKg.minPrice}`);
+console.log(`Max Price: ${priceByKg.maxPrice}`);
+
+
+console.log('Enhanced calculation:');
+console.log(`Max Price: ${enhancedCowPriceData.maxPrice}`);
+console.log(`Min Price: ${enhancedCowPriceData.minPrice}`);

@@ -1,6 +1,7 @@
 {
   "name": "price-calculator",
   "version": "1.0.0",
+  "type": "module",
   "description": "price calculator for a cow for FrontiersMarket test task",
   "main": "index.js",
   "scripts": {
